@@ -98,9 +98,11 @@ void setup()
   // check is DTU is in config mode
   if (e32dtu_init()) {
     // in confg mode:
-    debug(L_ERROR, "Error: E32-DTU is in configuration mode!");
-    debug(L_ERROR, "Halt"
-    while(1); // endless loop
+    debug(L_ERROR, "Error: E32-DTU is in configuration mode\n!");
+    debug(L_ERROR, "Halt in endless loop\n");
+    while(1) {}; // endless loop
+  } else {
+    debug(L_INFO, "E32-DTU init OK\n");
   }
 }
 
@@ -118,7 +120,7 @@ bool e32dtu_init () {
   if ( !receive485(1000,6) ) {
     return false; };    // no reply -> not in config mode -> exit
   // check contents of first byte whcih is fixed
-  if ( (rxBuffer[0] != C0) && (rxBuffer[0] != C2) ) {
+  if ( (rxBuffer[0] != 0xC0) && (rxBuffer[0] != 0xC2) ) {
     return false; };    // incorrect first byte -> not in config mode
 
   // DTU is in config mode, send configuration
@@ -174,6 +176,7 @@ void rx_print() {
 
 void loop()
 {
+  /*
   byte rxByte;
   if (serial485.available()) {
     digitalWrite(LED, HIGH);
@@ -186,6 +189,20 @@ void loop()
     Serial.println(">");
     digitalWrite(LED, LOW);
   }
+*/
+  digitalWrite(LED, HIGH);
+  txBuffer[0] = 'V'; //0xC0;   // save parameters on power down
+  txBuffer[1] = 'K'; //0x00;   // DTU address High byte
+  txBuffer[2] = '3'; //0x00;   // DTU address Low byte
+  txBuffer[3] = 'E'; //0x1A;   // 8N1, 9600bps, 1Kbps Airdata
+  txBuffer[4] = 'R'; //0x17;   // Comms channel 433MHz
+  txBuffer[5] = 'W'; //0x44;   // Transparent tx, Push-pull, wireless wakeup 250ms, FEC on, 30dBm TX pwr
+  txBuffer[6] = 0x0D;
+  txBuffer[7] = 0x0A;
+  write485(8);
+  //delay(150);
+  digitalWrite(LED, LOW);
+  delay(2000);
 
 }
 
